@@ -172,3 +172,12 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Macos
+.DS_Store
+
+# Output files
+output/
+
+# Team integration guide (handled separately)
+team-integration-guide.md
