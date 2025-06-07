@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 from typing import List
 from openai import OpenAI
+from instructor import patch
 
 from ..models.data_models import VideoSummaryConfig, TranscriptSegment
 
@@ -24,10 +25,7 @@ class AudioTranscriber:
             config: Configuration for video processing
         """
         self.config = config
-        self.api_key = os.environ.get("OPENAI_API_KEY")
-        if not self.api_key:
-            raise ValueError("OpenAI API key not found in config or environment.")
-        self.client = OpenAI(api_key=self.api_key)
+        self.client = patch(OpenAI())
     
     def transcribe(self, audio_path: Path) -> List[TranscriptSegment]:
         """
