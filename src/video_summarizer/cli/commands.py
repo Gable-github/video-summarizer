@@ -8,6 +8,7 @@ the different components of the video summarization pipeline.
 import time
 from pathlib import Path
 from typing import Optional
+import json
 
 from rich.progress import Progress, TaskID
 from rich.console import Console
@@ -25,6 +26,7 @@ from ..audio.transcriber import AudioTranscriber
 from ..audio.summarizer import TopicSummarizer
 from ..llm.processor import LLMProcessor
 from ..utils.markdown_generator import MarkdownGenerator
+from video_summarizer.audio.topic_segmenter import segment_topics_with_llm_full
 
 console = Console()
 
@@ -92,9 +94,21 @@ def process_video(
             transcriber = AudioTranscriber(config)
             transcript_segments = transcriber.transcribe(audio_path)
             result.transcript_segments = transcript_segments
+
+            # Save transcript segments as JSON
+            transcript_json_path = output_subdir / "transcript_segments.json"
+            with open(transcript_json_path, "w", encoding="utf-8") as f:
+                json.dump([s.model_dump() for s in transcript_segments], f, ensure_ascii=False, indent=2)
             
             if config.verbose:
                 console.print(f"[OK] Transcribed {len(transcript_segments)} segments", style="green")
+
+            # Topic segmentation using LLM
+            topic_json_path = output_subdir / "topic_segments.json"
+            segment_topics_with_llm_full(
+                [s.model_dump() for s in transcript_segments],
+                output_path=topic_json_path
+            )
         
         # Stage 5: Generate topic summaries
         if config.include_topics and result.transcript_segments:

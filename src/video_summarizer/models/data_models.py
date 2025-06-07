@@ -59,11 +59,9 @@ class Keyframe(BaseModel):
 
 class TranscriptSegment(BaseModel):
     """A segment of the video transcript."""
-    start_time: float
-    end_time: float
+    start_time: int
+    end_time: int
     text: str
-    confidence: Optional[float] = None
-    speaker: Optional[str] = None
 
 
 class TopicSummary(BaseModel):

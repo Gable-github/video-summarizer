@@ -1,21 +1,19 @@
 """
-Audio transcription module.
-
-This module will be replaced with the audio transcription team's implementation.
-Currently contains a placeholder implementation for testing the pipeline.
+AudioTranscriber module.
 """
 
+import os
 from pathlib import Path
 from typing import List
+from openai import OpenAI
 
 from ..models.data_models import VideoSummaryConfig, TranscriptSegment
 
-
 class AudioTranscriber:
     """
-    Placeholder audio transcriber.
-    
-    This will be replaced with the actual implementation from the audio transcription team.
+    Transcribes audio using OpenAI Whisper API, returning segment-level results.
+
+    Using env file for API for now
     """
     
     def __init__(self, config: VideoSummaryConfig):
@@ -26,62 +24,37 @@ class AudioTranscriber:
             config: Configuration for video processing
         """
         self.config = config
+        self.api_key = os.environ.get("OPENAI_API_KEY")
+        if not self.api_key:
+            raise ValueError("OpenAI API key not found in config or environment.")
+        self.client = OpenAI(api_key=self.api_key)
     
     def transcribe(self, audio_path: Path) -> List[TranscriptSegment]:
         """
-        Transcribe audio to text with timestamps.
+        Transcribe audio to text with timestamps using OpenAI Whisper API.
         
         Args:
             audio_path: Path to the audio file
             
         Returns:
             List of transcript segments with timestamps
-            
-        Note:
-            This is a placeholder implementation.
-            The actual implementation will be provided by the audio transcription team.
         """
-        # Placeholder implementation - returns dummy transcript segments
-        # The actual implementation should use advanced speech recognition
-        
-        segments = [
-            TranscriptSegment(
-                start_time=0.0,
-                end_time=30.0,
-                text="Welcome to this video. Today we'll be discussing the main topic.",
-                confidence=0.95,
-                speaker="Speaker 1"
-            ),
-            TranscriptSegment(
-                start_time=30.0,
-                end_time=60.0,
-                text="Let's start with the introduction and key concepts.",
-                confidence=0.92,
-                speaker="Speaker 1"
-            ),
-            TranscriptSegment(
-                start_time=60.0,
-                end_time=90.0,
-                text="The first important point we need to understand is...",
-                confidence=0.88,
-                speaker="Speaker 1"
-            ),
-            TranscriptSegment(
-                start_time=90.0,
-                end_time=120.0,
-                text="Moving on to the next section, we'll explore...",
-                confidence=0.91,
-                speaker="Speaker 1"
-            ),
-            TranscriptSegment(
-                start_time=120.0,
-                end_time=150.0,
-                text="In conclusion, the main takeaways from this discussion are...",
-                confidence=0.89,
-                speaker="Speaker 1"
+        with open(audio_path, "rb") as audio_file:
+            transcription = self.client.audio.transcriptions.create(
+                file=audio_file,
+                model="whisper-1",
+                response_format="verbose_json",
+                timestamp_granularities=["segment"]
             )
-        ]
-        
+        segments = []
+        for seg in getattr(transcription, "segments", []):
+            segments.append(
+                TranscriptSegment(
+                    start_time=int(getattr(seg, "start", 0.0)),
+                    end_time=int(getattr(seg, "end", 0.0)),
+                    text=getattr(seg, "text", "")
+                )
+            )
         return segments
 
 

@@ -14,12 +14,14 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.panel import Panel
 from rich.text import Text
+from dotenv import load_dotenv
 
 from .cli.commands import process_video
 from .utils.file_manager import ensure_output_directory
 from .models.data_models import VideoSummaryConfig
 
 console = Console()
+load_dotenv()
 
 
 def print_banner():
