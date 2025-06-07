@@ -45,18 +45,18 @@ class AudioExtractor:
         """
         try:
             # Create output audio file path
-            audio_filename = f"{video_path.stem}.wav"
+            audio_filename = f"{video_path.stem}.mp3"
             audio_path = self.temp_dir / audio_filename
             
-            # Use ffmpeg to extract audio
-            # This is a simple implementation - the team may provide more sophisticated options
+            # Use ffmpeg to extract audio as mp3 (smaller size)
             cmd = [
                 'ffmpeg',
                 '-i', str(video_path),
                 '-vn',  # No video
-                '-acodec', 'pcm_s16le',  # PCM 16-bit little-endian
+                '-acodec', 'libmp3lame',  # MP3 codec
                 '-ar', '16000',  # Sample rate 16kHz (good for speech recognition)
                 '-ac', '1',  # Mono channel
+                '-b:a', '64k',  # Bitrate 64kbps (sufficient for speech)
                 '-y',  # Overwrite output file
                 str(audio_path)
             ]
